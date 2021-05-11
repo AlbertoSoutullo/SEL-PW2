@@ -1,38 +1,66 @@
+import itertools
 import itertools as it
 import numpy as np
 from typing import List
+import pandas as pd
 
 
-def _perform_discrete_partitions(attributes: List) -> List:
-    """
-    This function performs discrete partitions (2^(v-1) - 1) of a given list of attributes. This means, all but
-    empty (first) and full (last) set.
-
-    :param attributes: List of discrete attributes.
-    :return: List of discrete partitions.
-    """
-    unique_attributes = set(attributes)
-    gini_combinations = list(it.chain.from_iterable(it.combinations(
-        unique_attributes, r) for r in range(len(unique_attributes) + 1)))
-    gini_combinations = gini_combinations[1:len(gini_combinations) - 1]
-    gini_combinations = list(set(gini_combinations))
-    gini_combinations = [gini_combinations[n:n+2] for n in range(0, len(gini_combinations), 2)]
-
-    return gini_combinations
+def divide_set(dataframe, column, value):
+    if isinstance(value, tuple):
+        set1, set2 = _divide_set_for_categorical(dataframe, column, value)
+    else:
+        set1, set2 = _divide_set_for_numerical(dataframe, column, value)
+    return set1, set2
 
 
-def _perform_continuous_partitions(attributes: List) -> List:
-    """
-    This function calculates the middle point between each element of a list of numbers.
+def _divide_set_for_categorical(dataframe, column, value):
+    set1 = dataframe.loc[dataframe[column].isin(value[0])]
+    set2 = dataframe.loc[dataframe[column].isin(value[1])]
 
-    :param attributes: List of numbers to use.
-    :return: List of split points. Example: Input -> [1, 3, 5]; Output -> [2, 4]
-    """
-    unique_attributes = set(attributes)
-    sorted_attributes = sorted(unique_attributes)
-    np_sorted_attributes = np.array(sorted_attributes)
-    split_points = (np_sorted_attributes[:-1]+np_sorted_attributes[1:]) / 2
-
-    return split_points
+    return set1, set2
 
 
+def _divide_set_for_numerical(dataframe, column, value):
+    set1 = dataframe.loc[dataframe[column] >= value]
+    set2 = dataframe.loc[dataframe[column] < value]
+
+    return set1, set2
+
+
+def _binary_splits(values):
+    for result_indices in itertools.product((0, 1), repeat=len(values)):
+        result = ([], [])
+        for seq_index, result_index in enumerate(result_indices):
+            result[result_index].append(values[seq_index])
+        # skip results where one of the sides is empty
+        if not result[0] or not result[1]: continue
+        # convert from list to tuple so we can hash it later
+        yield map(tuple, result)
+
+
+def _binary_splits_no_dupes(values):
+    seen = set()
+    for item in _binary_splits(values):
+        key = tuple(sorted(item))
+        if key in seen: continue
+        yield key
+        seen.add(key)
+
+
+def get_categorical_splits(values):
+    splits = []
+    for left, right in _binary_splits_no_dupes(values):
+        splits.append((left, right))
+
+    return splits
+
+
+def gini_impurity(dataset: pd.DataFrame):
+    total_instances = len(dataset)
+    count_classes = dataset.iloc[:, -1:].value_counts()
+    impurity_sum = 0
+
+    for count in count_classes:
+        impurity_sum += (count / total_instances) ** 2
+
+    return 1 - impurity_sum
