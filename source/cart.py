@@ -70,7 +70,7 @@ class Cart:
         if self._attributes_to_use == -1:
             subsample_attributes = dataset.columns[:-1]
         else:
-            subsample_attributes = random.sample(dataset.columns[:-1], self._attributes_to_use)
+            subsample_attributes = random.sample(list(dataset.columns[:-1]), self._attributes_to_use)
 
         current_impurity = gini_impurity(dataset)
 
