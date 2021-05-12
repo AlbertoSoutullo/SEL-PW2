@@ -1,10 +1,10 @@
-import pandas as pd
 
 
 class Node:
 
-    def __init__(self, left=None, right=None, best_attribute=None, results=None):
-        self._left = left
-        self._right = right
+    def __init__(self, left=None, right=None, best_attribute=None, right_values=None, leaf_results=None):
+        self._left_node = left
+        self._right_node = right
         self._best_attribute = best_attribute
-        self._results = results
+        self._right_values = right_values
+        self._leaf_results = leaf_results

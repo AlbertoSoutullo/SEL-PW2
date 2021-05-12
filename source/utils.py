@@ -1,21 +1,29 @@
 import itertools
 import itertools as it
+from collections import Counter
+
 import numpy as np
-from typing import List
+from typing import List, Dict
 import pandas as pd
 
 
-def divide_set(dataframe, column, value):
-    if isinstance(value, tuple):
-        set1, set2 = _divide_set_for_categorical(dataframe, column, value)
+def divide_set(dataframe, column, combinations):
+    if isinstance(combinations, tuple):
+        set1, set2 = _divide_set_for_categorical(dataframe, column, combinations)
     else:
-        set1, set2 = _divide_set_for_numerical(dataframe, column, value)
+        set1, set2 = _divide_set_for_numerical(dataframe, column, combinations)
     return set1, set2
 
 
 def _divide_set_for_categorical(dataframe, column, value):
-    set1 = dataframe.loc[dataframe[column].isin(value[0])]
-    set2 = dataframe.loc[dataframe[column].isin(value[1])]
+    if isinstance(value[0], tuple): value0 = list(value[0])
+    else: value0 = [value[0]]
+
+    if isinstance(value[1], tuple): value1 = list(value[1])
+    else: value1 = [value[1]]
+
+    set1 = dataframe.loc[dataframe[column].isin(value0)]
+    set2 = dataframe.loc[dataframe[column].isin(value1)]
 
     return set1, set2
 
@@ -64,3 +72,15 @@ def gini_impurity(dataset: pd.DataFrame):
         impurity_sum += (count / total_instances) ** 2
 
     return 1 - impurity_sum
+
+
+def _count_classes_in_dataset(dataset: pd.DataFrame):
+
+    return dict(Counter(itertools.chain.from_iterable(dataset.iloc[:, -1:].values.tolist())))
+
+
+def _select_most_relevant_class(dataset: pd.DataFrame):
+    classes = _count_classes_in_dataset(dataset)
+    relevant_class = max(classes, key=classes.get)
+
+    return relevant_class
