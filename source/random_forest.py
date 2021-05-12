@@ -1,3 +1,4 @@
+import random
 from typing import Dict
 import pandas as pd
 from source.cart import Cart
@@ -12,7 +13,7 @@ class RandomForestClassifier:
         self._trees = []
         self._features = {}
         self._classifications = []
-        self._seed = seed
+        random.seed(seed)
 
     def induce(self, dataset: str):
 
@@ -20,8 +21,8 @@ class RandomForestClassifier:
 
         for i in range(self._NT):
             print(f"Inducing tree {i}...")
-            random_sample = dataframe.sample(frac=self._random_partition, random_state=self._seed)
-            cart_tree = Cart(self._F, self._seed)
+            random_sample = dataframe.sample(frac=self._random_partition, random_state=random.randint(0, 100000))
+            cart_tree = Cart(self._F, random.randint(0, 100000))
             cart_tree.fit(random_sample)
             self._update_features(cart_tree._feature_selecteds)
             self._trees.append(cart_tree)
