@@ -21,7 +21,7 @@ class RandomForestClassifier:
         for i in range(self._NT):
             print(f"Inducing tree {i}...")
             random_sample = dataframe.sample(frac=self._random_partition, random_state=self._seed)
-            cart_tree = Cart()
+            cart_tree = Cart(self._F, self._seed)
             cart_tree.fit(random_sample)
             self._update_features(cart_tree._feature_selecteds)
             self._trees.append(cart_tree)
