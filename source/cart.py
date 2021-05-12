@@ -9,12 +9,13 @@ from utils import divide_set, gini_impurity, get_categorical_splits, _count_clas
 
 class Cart:
 
-    def __init__(self, attributes_to_use=-1):
+    def __init__(self, attributes_to_use=-1, seed=0):
         self._root = None
         self._splits_done = 0
         self._feature_selecteds = {}
         self._classifications = []
         self._attributes_to_use = attributes_to_use
+        random.seed(seed)
 
     def fit(self, dataset: pd.DataFrame):
 
