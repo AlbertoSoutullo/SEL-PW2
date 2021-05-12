@@ -1,3 +1,4 @@
+import random
 from typing import List
 import pandas as pd
 import numpy as np
@@ -8,16 +9,17 @@ from utils import divide_set, gini_impurity, get_categorical_splits, _count_clas
 
 class Cart:
 
-    def __init__(self):
+    def __init__(self, attributes_to_use=-1):
         self._root = None
         self._splits_done = 0
         self._feature_selecteds = {}
         self._classifications = []
+        self._attributes_to_use = attributes_to_use
 
     def fit(self, dataset: pd.DataFrame):
 
         for column in dataset.columns[:-1]:
-            self._feature_selecteds[column] = 0
+            self._feature_selecteds[str(column)] = 0
 
         self._root = self._expand_binary_tree(dataset)
 
@@ -35,13 +37,21 @@ class Cart:
         if node._leaf_results is not None:
             return node._leaf_results
         else:
-            next_node = None
             v = row[node._best_attribute]
             if isinstance(v, str):
-                if isinstance(node._right_values, tuple): list_values = node._right_values
-                else: list_values = [node._right_values]
-                if v in list_values: next_node = node._right_node
-                else: next_node = node._left_node
+                if isinstance(node._right_values, tuple):
+                    list_values = node._right_values
+                else:
+                    list_values = [node._right_values]
+                if v in list_values:
+                    next_node = node._right_node
+                else:
+                    next_node = node._left_node
+            else:
+                if v >= node._right_values:
+                    next_node = node._left_node
+                else:
+                    next_node = node._right_node
 
         return self._recursive_classification(row, next_node)
 
@@ -56,11 +66,16 @@ class Cart:
         best_impurity = np.inf
         keep_expanding = False
 
+        if self._attributes_to_use == -1:
+            subsample_attributes = dataset.columns[:-1]
+        else:
+            subsample_attributes = random.sample(dataset.columns[:-1], self._attributes_to_use)
+
         current_impurity = gini_impurity(dataset)
 
         if current_impurity != 0:
             # For each column
-            for column in dataset.columns[:-1]:
+            for column in subsample_attributes:
                 unique_values_in_column = list(set(dataset[column]))
                 unique_values_in_column.sort()
 
@@ -79,13 +94,13 @@ class Cart:
 
                     if impurity_set < best_impurity and len(set1) > 0 and len(set2) > 0:
                         best_attribute = column
-                        right_values = split[1]
+                        right_values = split[1] if isinstance(split, tuple) else split
                         best_sets = (set1, set2)
                         best_impurity = impurity_set
                         keep_expanding = True
 
         if keep_expanding:
-            self._feature_selecteds[best_attribute] += 1
+            self._feature_selecteds[str(best_attribute)] += 1
             self._splits_done += 1
             left_node = self._expand_binary_tree(best_sets[0])
             right_node = self._expand_binary_tree(best_sets[1])
@@ -102,19 +117,21 @@ class Cart:
         return feature_importance
 
 
-test = pd.DataFrame({"height": ["alto", "alto", "bajo", "alto", "test"],
-                     "weight": [70, 80, 90, 60, 0],
-                     "age": [20, 30, 40, 10, 0],
-                     "class": ["A", "A", "B", "A", "C"]})
+# test = pd.DataFrame({"height": ["alto", "alto", "bajo", "alto", "test"],
+#                      "weight": [70, 80, 90, 60, 0],
+#                      "age": [20, 30, 40, 10, 0],
+#                      "class": ["A", "A", "B", "A", "C"]})
+# test2 = pd.DataFrame({"height": ["alto", "bajo"],
+#                       "weight": [45, 46],
+#                       "age": [20, 30]})
+# test = pd.DataFrame({"altura": [2, 2, 2], "raza": ["a", "b", "c"]})
+#
+# test2 = pd.DataFrame({"altura": [2, 2, 2]})
 
-test2 = pd.DataFrame({"height": ["alto", "bajo"],
-                      "weight": [45, 46],
-                      "age": [20, 30]})
-
-print(test)
-cart = Cart()
-cart.fit(test)
-f_i = cart.calculate_feature_importance()
-
-classifications = cart.classify(test2)
-print(classifications)
+# print(test)
+# cart = Cart()
+# cart.fit(test)
+# f_i = cart.calculate_feature_importance()
+#
+# classifications = cart.classify(test2)
+# print(classifications)
