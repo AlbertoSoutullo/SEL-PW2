@@ -6,7 +6,7 @@ from source.cart import Cart
 
 class RandomForestClassifier:
 
-    def __init__(self, number_of_trees: int, num_random_features: int, random_partition: float, seed: int = 0):
+    def __init__(self, number_of_trees: int, num_random_features: int, random_partition: float = 0.75, seed: int = 0):
         self._NT = number_of_trees
         self._F = num_random_features
         self._random_partition = random_partition
@@ -15,13 +15,10 @@ class RandomForestClassifier:
         self._classifications = []
         random.seed(seed)
 
-    def induce(self, dataset: str):
-
-        dataframe = pd.read_csv(dataset, header=None)
+    def fit(self, dataset):
 
         for i in range(self._NT):
-            print(f"Inducing tree {i}...")
-            random_sample = dataframe.sample(frac=self._random_partition, random_state=random.randint(0, 100000))
+            random_sample = dataset.sample(frac=self._random_partition, random_state=random.randint(0, 100000))
             cart_tree = Cart(self._F, random.randint(0, 100000))
             cart_tree.fit(random_sample)
             self._update_features(cart_tree._feature_selecteds)
@@ -56,21 +53,3 @@ class RandomForestClassifier:
                 self._features[key] += value
             else:
                 self._features[key] = value
-
-
-dataframe = pd.read_csv("../Data/cmc.data", header=None)
-true_values = dataframe[9].tolist()
-dataframe = dataframe.iloc[:, :-1]
-
-rfc = RandomForestClassifier(2, 5, 0.75)
-rfc.induce("../Data/cmc.data")
-features = rfc.extract_features()
-print(features)
-
-
-predictions = rfc.predict(dataframe)
-
-accuracy = len([true_values[i] for i in range(0, len(true_values)) if true_values[i] == predictions[i]]) / len(true_values)
-errors = len([i for i in range(0, len(true_values)) if true_values[i] != predictions[i]])
-print(accuracy)
-print(errors)
