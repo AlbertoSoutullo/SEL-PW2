@@ -1,0 +1,9 @@
+{
+  "classifier" : "RandomForestClassifier",
+  "dataset": "../Data/cmc.data",
+  "train_test_split": 0.75,
+  "NT": [1, 10, 25, 50, 75, 100],
+  "F": [1, 2, 3, 4],
+  "csv_out_name": "RandomForest_cmc.csv",
+  "seed": 0
+}
