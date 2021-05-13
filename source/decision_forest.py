@@ -21,7 +21,7 @@ class DecisionForestClassifier:
             classes = dataset.iloc[:, -1:]
 
             if self._runif:
-                number_or_random_features = random.randint(1, len(dataset.columns))
+                number_or_random_features = random.randint(1, len(dataset.columns)-1)
             else:
                 number_or_random_features = self._F
 
