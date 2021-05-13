@@ -60,7 +60,7 @@ class ForestInterpreter:
 
         self._results = pd.concat([self._results, result])
 
-        with open(f"logs/{self._forest_name}_NT-{number_of_trees}_F-{number_of_features}", "w") as file:
+        with open(f"logs/{self._name_to_export_csv}_NT-{number_of_trees}_F-{number_of_features}", "w") as file:
             file.write(info+"\n")
             feature_importance_info = f"Feature importance -> ('feature': number of appearances)"
             print(feature_importance_info)
