@@ -15,14 +15,18 @@ class DecisionForestClassifier:
         self._runif = runif
         random.seed(seed)
 
-    def induce(self, dataset: str):
-
-        dataframe = pd.read_csv(dataset, header=None)
+    def fit(self, dataset):
 
         for i in range(self._NT):
-            print(f"Inducing tree {i}...")
-            classes = dataframe.iloc[:, -1:]
-            random_sample = dataframe.iloc[:, :-1].sample(n=self._F, random_state=random.randint(0, 100000), axis=1)
+            classes = dataset.iloc[:, -1:]
+
+            if self._runif:
+                number_or_random_features = random.randint(1, len(dataset.columns))
+            else:
+                number_or_random_features = self._F
+
+            random_sample = dataset.iloc[:, :-1].sample(n=number_or_random_features,
+                                                        random_state=random.randint(0, 100000), axis=1)
             random_sample_complete = pd.concat([random_sample, classes], axis=1)
             cart_tree = Cart(seed=random.randint(0, 100000))
             cart_tree.fit(random_sample_complete)
@@ -58,21 +62,3 @@ class DecisionForestClassifier:
                 self._features[key] += value
             else:
                 self._features[key] = value
-
-
-dataframe = pd.read_csv("../Data/cmc.data", header=None)
-true_values = dataframe[9].tolist()
-dataframe = dataframe.iloc[:, :-1]
-
-rfc = DecisionForestClassifier(5, 5)
-rfc.induce("../Data/cmc.data")
-features = rfc.extract_features()
-print(features)
-
-
-predictions = rfc.predict(dataframe)
-
-accuracy = len([true_values[i] for i in range(0, len(true_values)) if true_values[i] == predictions[i]]) / len(true_values)
-errors = len([i for i in range(0, len(true_values)) if true_values[i] != predictions[i]])
-print(accuracy)
-print(errors)
