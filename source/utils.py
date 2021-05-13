@@ -1,5 +1,8 @@
 import itertools
+import math
 from collections import Counter
+
+import numpy as np
 import pandas as pd
 
 
@@ -80,3 +83,34 @@ def _select_most_relevant_class(dataset: pd.DataFrame):
     relevant_class = max(classes, key=classes.get)
 
     return relevant_class
+
+
+def _calculate_fs_random_forest(dataset: pd.DataFrame):
+    number_of_attributes = len(dataset.columns[:-1])
+    f_3 = int(np.log2(number_of_attributes + 1))
+    f_4 = int(math.sqrt(number_of_attributes))
+
+    return [1, 3, f_3, f_4]
+
+
+def _calculate_fs_decision_forest(dataset: pd.DataFrame):
+    number_of_attributes = len(dataset.columns[:-1])
+
+    f1 = int(number_of_attributes / 4)
+    f2 = int(number_of_attributes / 2)
+    f3 = int(3 * number_of_attributes / 4)
+    f4 = "runif"
+
+    return [f1, f2, f3, f4]
+
+
+def calculate_fs(classifier, dataset):
+
+    if classifier == "RandomForestClassifier":
+        fs = _calculate_fs_random_forest(dataset)
+    elif classifier == "DecisionForestClassifier":
+        fs = _calculate_fs_decision_forest(dataset)
+    else:
+        return None
+
+    return fs
