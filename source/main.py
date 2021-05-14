@@ -1,40 +1,30 @@
-import json
 import time
 import pandas as pd
 from sys import argv
 from source.forests.forest_interpreter import ForestInterpreter
-from source.utils.utils import calculate_fs
+from source.utils.utils import load_json, check_f_field, train_test_truth_split
 
-interpreter_configuration = argv[1]
 
-with open(interpreter_configuration) as json_file:
-    config = json.load(json_file)
+if __name__ == '__main__':
 
-dataset = pd.read_csv(config["dataset"], header=None)
-classifier = config["classifier"]
-if "F" in config.keys():
-    fs = config["F"]
-else:
-    fs = calculate_fs(classifier, dataset)
+    interpreter_configuration_path = argv[1]
+    config = load_json(interpreter_configuration_path)
 
-if fs is None:
-    print(f"Classifier {classifier} not supported.")
-    exit()
+    dataset = pd.read_csv(config["dataset"], header=None)
+    classifier = config["classifier"]
+    fs = check_f_field(config, dataset)
 
-train = dataset.sample(frac=config["train_test_split"], random_state=config["seed"])
-test = dataset.drop(train.index)
-ground_truth = test.iloc[:, -1:].iloc[:, 0].values.tolist()
-test = test.iloc[:, :-1]
+    train, test, ground_truth = train_test_truth_split(dataset, config)
 
-forest_interpreter = ForestInterpreter(classifier,
-                                       train,
-                                       config["NT"],
-                                       fs,
-                                       config["csv_out_name"],
-                                       config["seed"])
+    forest_interpreter = ForestInterpreter(classifier,
+                                           train,
+                                           config["NT"],
+                                           fs,
+                                           config["csv_out_name"],
+                                           config["seed"])
 
-start_time = time.time()
+    start_time = time.time()
 
-forest_interpreter.interpret(test, ground_truth)
+    forest_interpreter.interpret(test, ground_truth)
 
-print(f"Execution time: {str(time.time() - start_time)}")
+    print(f"Execution time: {str(time.time() - start_time)}")

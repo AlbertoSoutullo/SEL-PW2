@@ -1,7 +1,7 @@
 import itertools
+import json
 import math
 from collections import Counter
-
 import numpy as np
 import pandas as pd
 
@@ -15,11 +15,15 @@ def divide_set(dataframe, column, combinations):
 
 
 def _divide_set_for_categorical(dataframe, column, value):
-    if isinstance(value[0], tuple): value0 = list(value[0])
-    else: value0 = [value[0]]
+    if isinstance(value[0], tuple):
+        value0 = list(value[0])
+    else:
+        value0 = [value[0]]
 
-    if isinstance(value[1], tuple): value1 = list(value[1])
-    else: value1 = [value[1]]
+    if isinstance(value[1], tuple):
+        value1 = list(value[1])
+    else:
+        value1 = [value[1]]
 
     set1 = dataframe.loc[dataframe[column].isin(value0)]
     set2 = dataframe.loc[dataframe[column].isin(value1)]
@@ -40,7 +44,8 @@ def _binary_splits(values):
         for seq_index, result_index in enumerate(result_indices):
             result[result_index].append(values[seq_index])
         # skip results where one of the sides is empty
-        if not result[0] or not result[1]: continue
+        if not result[0] or not result[1]:
+            continue
         # convert from list to tuple so we can hash it later
         yield map(tuple, result)
 
@@ -49,7 +54,8 @@ def _binary_splits_no_dupes(values):
     seen = set()
     for item in _binary_splits(values):
         key = tuple(sorted(item))
-        if key in seen: continue
+        if key in seen:
+            continue
         yield key
         seen.add(key)
 
@@ -73,13 +79,13 @@ def gini_impurity(dataset: pd.DataFrame):
     return 1 - impurity_sum
 
 
-def _count_classes_in_dataset(dataset: pd.DataFrame):
+def count_classes_in_dataset(dataset: pd.DataFrame):
 
     return dict(Counter(itertools.chain.from_iterable(dataset.iloc[:, -1:].values.tolist())))
 
 
 def _select_most_relevant_class(dataset: pd.DataFrame):
-    classes = _count_classes_in_dataset(dataset)
+    classes = count_classes_in_dataset(dataset)
     relevant_class = max(classes, key=classes.get)
 
     return relevant_class
@@ -104,7 +110,21 @@ def _calculate_fs_decision_forest(dataset: pd.DataFrame):
     return [f1, f2, f3, f4]
 
 
-def calculate_fs(classifier, dataset):
+def check_f_field(config, dataset):
+    classifier = config["classifier"]
+    if "F" in config.keys():
+        fs = config["F"]
+    else:
+        fs = _calculate_fs(classifier, dataset)
+
+    if fs is None:
+        print(f"Classifier {classifier} not supported.")
+        exit()
+
+    return fs
+
+
+def _calculate_fs(classifier, dataset):
 
     if classifier == "RandomForestClassifier":
         fs = _calculate_fs_random_forest(dataset)
@@ -114,3 +134,21 @@ def calculate_fs(classifier, dataset):
         return None
 
     return fs
+
+
+def load_json(interpreter_configuration_path):
+    with open(interpreter_configuration_path) as json_file:
+        config = json.load(json_file)
+
+    return config
+
+
+def train_test_truth_split(dataset, config):
+    train = dataset.sample(frac=config["train_test_split"], random_state=config["seed"])
+    test = dataset.drop(train.index)
+
+    ground_truth = test.iloc[:, -1:].iloc[:, 0].values.tolist()
+
+    test = test.iloc[:, :-1]
+
+    return train, test, ground_truth

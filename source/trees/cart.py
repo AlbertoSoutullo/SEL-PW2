@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 from source.data_structure.node import Node
-from utils import divide_set, gini_impurity, get_categorical_splits, _count_classes_in_dataset
+from source.utils.utils import get_categorical_splits, divide_set, gini_impurity, count_classes_in_dataset
 
 
 class Cart:
@@ -11,7 +11,7 @@ class Cart:
     def __init__(self, attributes_to_use=-1, seed=0):
         self._root = None
         self._splits_done = 0
-        self._feature_selecteds = {}
+        self._features_chose = {}
         self._classifications = []
         self._attributes_to_use = attributes_to_use
         random.seed(seed)
@@ -19,7 +19,7 @@ class Cart:
     def fit(self, dataset: pd.DataFrame):
 
         for column in dataset.columns[:-1]:
-            self._feature_selecteds[str(column)] = 0
+            self._features_chose[str(column)] = 0
 
         self._root = self._expand_binary_tree(dataset)
 
@@ -34,24 +34,24 @@ class Cart:
         return self._classifications
 
     def _recursive_classification(self, row, node):
-        if node._leaf_results is not None:
-            return node._leaf_results
+        if node.leaf_results is not None:
+            return node.leaf_results
         else:
-            v = row[node._best_attribute]
+            v = row[node.best_attribute]
             if isinstance(v, str):
-                if isinstance(node._right_values, tuple):
-                    list_values = node._right_values
+                if isinstance(node.right_values, tuple):
+                    list_values = node.right_values
                 else:
-                    list_values = [node._right_values]
+                    list_values = [node.right_values]
                 if v in list_values:
-                    next_node = node._right_node
+                    next_node = node.right_node
                 else:
-                    next_node = node._left_node
+                    next_node = node.left_node
             else:
-                if v >= node._right_values:
-                    next_node = node._left_node
+                if v >= node.right_values:
+                    next_node = node.left_node
                 else:
-                    next_node = node._right_node
+                    next_node = node.right_node
 
         return self._recursive_classification(row, next_node)
 
@@ -81,7 +81,7 @@ class Cart:
 
                 if not isinstance(unique_values_in_column[0], str):
                     possible_splits = (np.array(unique_values_in_column[:-1]) +
-                                             np.array(unique_values_in_column[1:])) / 2
+                                       np.array(unique_values_in_column[1:])) / 2
                 else:
                     possible_splits = get_categorical_splits(unique_values_in_column)
 
@@ -100,38 +100,22 @@ class Cart:
                         keep_expanding = True
 
         if keep_expanding:
-            self._feature_selecteds[str(best_attribute)] += 1
+            self._features_chose[str(best_attribute)] += 1
             self._splits_done += 1
             left_node = self._expand_binary_tree(best_sets[0])
             right_node = self._expand_binary_tree(best_sets[1])
             return Node(left_node, right_node, best_attribute, right_values, leaf_results)
         else:
-            leaf_results = _count_classes_in_dataset(dataset)
+            leaf_results = count_classes_in_dataset(dataset)
             return Node(None, None, None, right_values, leaf_results)
 
     def calculate_feature_importance(self):
         feature_importance = {}
-        for key, value in self._feature_selecteds.items():
+        for key, value in self._features_chose.items():
             feature_importance[key] = value / self._splits_done
 
         return feature_importance
 
-
-# test = pd.DataFrame({"height": ["alto", "alto", "bajo", "alto", "test"],
-#                      "weight": [70, 80, 90, 60, 0],
-#                      "age": [20, 30, 40, 10, 0],
-#                      "class": ["A", "A", "B", "A", "C"]})
-# test2 = pd.DataFrame({"height": ["alto", "bajo"],
-#                       "weight": [45, 46],
-#                       "age": [20, 30]})
-# test = pd.DataFrame({"altura": [2, 2, 2], "raza": ["a", "b", "c"]})
-#
-# test2 = pd.DataFrame({"altura": [2, 2, 2]})
-
-# print(test)
-# cart = Cart()
-# cart.fit(test)
-# f_i = cart.calculate_feature_importance()
-#
-# classifications = cart.classify(test2)
-# print(classifications)
+    @property
+    def features_chose(self):
+        return self._features_chose
