@@ -1,0 +1,8 @@
+{
+  "classifier" : "DecisionForestClassifier",
+  "dataset": "../Data/glass.data",
+  "train_test_split": 0.75,
+  "NT": [1, 10, 25, 50, 75, 100],
+  "csv_out_name": "DecisionForest_glass.csv",
+  "seed": 0
+}
