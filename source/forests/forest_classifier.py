@@ -1,10 +1,21 @@
 import random
-from typing import Dict
+import pandas as pd
+from typing import Dict, List, Tuple
 
 
 class ForestClassifier:
-
+    """
+    Based class of a Forest Classifier. It has the required parameters to work for any Forest Classifier.
+    It has a tree parameter. List. All trees will be saved there.
+    In features, the features importance will be saved.
+    Classification is a List that will hold the final classification of each instance when we want to predict.
+    """
     def __init__(self, number_of_trees: int, num_random_features: int, seed: int = 0):
+        """
+        :param number_of_trees: Number of CART tress that will be created.
+        :param num_random_features: Number of random features that will be used.
+        :param seed: Seed for reproduce results.
+        """
         self._NT = number_of_trees
         self._F = num_random_features
         self._trees = []
@@ -12,11 +23,45 @@ class ForestClassifier:
         self._classifications = []
         random.seed(seed)
 
-    def predict(self, dataset):
+    def predict(self, dataset: pd.DataFrame):
+        """
+        It performs a classification of the given data.
+        :param dataset: Pandas dataset to classify.
+        :return: None
+        """
         for tree in self._trees:
             classifications = tree.classify(dataset)
             self._classifications.append(classifications)
 
+        final_classifications = self._perform_voting(dataset)
+
+        return final_classifications
+
+    def extract_features(self) -> List[Tuple]:
+        """
+        Extract an ordered (by importance) set of features.
+        :return: List with the features like Tuples ('column index', 'importance')
+        """
+        return list(sorted(self._features.items(), key=lambda x: x[1], reverse=True))
+
+    def _update_features(self, new_features: Dict):
+        """
+        Add the given features from a tree to the whole register of features used in the forest.
+        :param new_features: New set of features that has to be added to features.
+        :return: None
+        """
+        for key, value in new_features.items():
+            if key in self._features.keys():
+                self._features[key] += value
+            else:
+                self._features[key] = value
+
+    def _perform_voting(self, dataset: pd.DataFrame) -> List:
+        """
+        Classifies the given dataset perform the majority voting.
+        :param dataset: Data to classify.
+        :return: List of final classifications
+        """
         final_classifications = []
         for i in range(len(dataset)):
             current_instance_predicted_classes = {}
@@ -32,12 +77,5 @@ class ForestClassifier:
 
         return final_classifications
 
-    def extract_features(self):
-        return list(sorted(self._features.items(), key=lambda x: x[1], reverse=True))
-
-    def _update_features(self, new_features: Dict):
-        for key, value in new_features.items():
-            if key in self._features.keys():
-                self._features[key] += value
-            else:
-                self._features[key] = value
+    def fit(self, _dataset):
+        pass
