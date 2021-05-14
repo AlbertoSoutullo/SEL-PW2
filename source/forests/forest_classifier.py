@@ -1,0 +1,43 @@
+import random
+from typing import Dict
+
+
+class ForestClassifier:
+
+    def __init__(self, number_of_trees: int, num_random_features: int, seed: int = 0):
+        self._NT = number_of_trees
+        self._F = num_random_features
+        self._trees = []
+        self._features = {}
+        self._classifications = []
+        random.seed(seed)
+
+    def predict(self, dataset):
+        for tree in self._trees:
+            classifications = tree.classify(dataset)
+            self._classifications.append(classifications)
+
+        final_classifications = []
+        for i in range(len(dataset)):
+            current_instance_predicted_classes = {}
+            for j in range(self._NT):
+                tree_prediction = self._classifications[j][i]
+                if tree_prediction in current_instance_predicted_classes.keys():
+                    current_instance_predicted_classes[tree_prediction] += 1
+                else:
+                    current_instance_predicted_classes[tree_prediction] = 1
+            class_decision = max(current_instance_predicted_classes, key=current_instance_predicted_classes.get)
+
+            final_classifications.append(class_decision)
+
+        return final_classifications
+
+    def extract_features(self):
+        return list(sorted(self._features.items(), key=lambda x: x[1], reverse=True))
+
+    def _update_features(self, new_features: Dict):
+        for key, value in new_features.items():
+            if key in self._features.keys():
+                self._features[key] += value
+            else:
+                self._features[key] = value
