@@ -1,0 +1,5 @@
+Classifying with RandomForestClassifier with NT=1 and F=1...
+Feature importance -> ('feature': number of appearances)
+[('0', 8), ('2', 6), ('3', 4), ('5', 3), ('6', 3), ('7', 3), ('1', 1), ('4', 1), ('8', 0)]
+Accuracy: 0.446
+

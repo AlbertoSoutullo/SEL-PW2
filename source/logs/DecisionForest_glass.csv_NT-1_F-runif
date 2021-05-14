@@ -1,0 +1,5 @@
+Classifying with DecisionForestClassifier with NT=1 and F=runif...
+Feature importance -> ('feature': number of appearances)
+[('0', 4), ('6', 1), ('9', 0), ('7', 0), ('3', 0), ('2', 0), ('5', 0)]
+Accuracy: 0.963
+
