@@ -1,9 +1,8 @@
 import random
-from typing import List
 import pandas as pd
 import numpy as np
 
-from source.node import Node
+from source.data_structure.node import Node
 from utils import divide_set, gini_impurity, get_categorical_splits, _count_classes_in_dataset
 
 

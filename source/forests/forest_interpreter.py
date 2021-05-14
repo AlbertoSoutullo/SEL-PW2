@@ -1,7 +1,7 @@
 import pandas as pd
 
-from source.decision_forest import DecisionForestClassifier
-from source.random_forest import RandomForestClassifier
+from source.forests.decision_forest import DecisionForestClassifier
+from source.forests.random_forest import RandomForestClassifier
 
 
 class ForestInterpreter:

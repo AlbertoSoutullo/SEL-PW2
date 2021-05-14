@@ -1,8 +1,9 @@
 import json
+import time
 import pandas as pd
 from sys import argv
-from source.forest_interpreter import ForestInterpreter
-from source.utils import calculate_fs
+from source.forests.forest_interpreter import ForestInterpreter
+from source.utils.utils import calculate_fs
 
 interpreter_configuration = argv[1]
 
@@ -32,4 +33,8 @@ forest_interpreter = ForestInterpreter(classifier,
                                        config["csv_out_name"],
                                        config["seed"])
 
+start_time = time.time()
+
 forest_interpreter.interpret(test, ground_truth)
+
+print(f"Execution time: {str(time.time() - start_time)}")

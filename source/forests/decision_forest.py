@@ -1,7 +1,7 @@
 import random
 from typing import Dict
 import pandas as pd
-from source.cart import Cart
+from source.trees.cart import Cart
 
 
 class DecisionForestClassifier:
